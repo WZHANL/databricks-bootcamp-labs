@@ -1,6 +1,10 @@
 # Databricks notebook source
+# /// script
+# [tool.databricks.environment]
+# environment_version = "6"
+# ///
 # MAGIC %md
-# MAGIC # Lab 02 · Idempotent batch loads with COPY INTO
+# MAGIC # Lab 01 · Idempotent batch loads with COPY INTO
 # MAGIC Compare with the Auto Loader streaming table in the pipeline: COPY INTO is a simple,
 # MAGIC re-runnable SQL command that skips files it has already loaded.
 
@@ -25,8 +29,11 @@ display(result)
 
 # MAGIC %md
 # MAGIC Run the previous cell **again**. `num_inserted_rows` is 0 — COPY INTO is idempotent.
-# MAGIC Now run the `generate_data` job with `batch=1` and re-run: only the new file is loaded.
+# MAGIC If you run the `generate_data` job with a new`batch` number and re-run: only the new file is loaded.
 
 # COMMAND ----------
 
 display(spark.sql("SELECT count(*) AS total_rows, count(DISTINCT order_id) AS distinct_orders FROM orders_copy_into"))
+
+# COMMAND ----------
+
