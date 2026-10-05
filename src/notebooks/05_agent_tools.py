@@ -1,8 +1,12 @@
 # Databricks notebook source
+# /// script
+# [tool.databricks.environment]
+# environment_version = "6"
+# ///
 # MAGIC %md
-# MAGIC # Lab 06 · Governed tools for the support agent
+# MAGIC # Lab 05 · Governed tools for the support agent
 # MAGIC Unity Catalog functions become agent tools: governed, versioned, discoverable — and callable through MCP.
-# MAGIC After this notebook, add them to your agent in **Agent Bricks** (see the lab README).
+# MAGIC After this notebook, they are wired into the code-first agent in `05_agent` (Free Edition has no Agent Bricks Knowledge Assistant).
 
 # COMMAND ----------
 

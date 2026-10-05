@@ -131,8 +131,8 @@ databricks bundle validate && databricks bundle validate -t staging
 ```
 
 ## Part 7 · Verify
-* Technical: `[dev <you>] generate_data` ran green; **Catalog → bootcamp_dev → dev_<you>_sales → Volumes → raw** has files.
-* Business: `[dev <you>] business_quickstart` ran green; the schema contains `orders_metrics`, `fact_orders`, `tickets_enriched`.
+* Technical: `[dev <you>] generate_data` job in **Jobs & Pipelines** ran green; **Catalog → bootcamp_dev → dev_<you>_sales → Volumes → raw** has files.
+* Business: `[dev <you>] business_quickstart` job in **Jobs & Pipelines** ran green; the schema contains `orders_metrics`, `fact_orders`, `tickets_enriched`.
 
 | Lab (deck section) | Technical track needs | Business track needs |
 |--------------------|-----------------------|----------------------|
@@ -150,6 +150,19 @@ databricks bundle validate && databricks bundle validate -t staging
   **one** Lakebase project.
 * Not available: Agent Bricks *Knowledge Assistant* (lab 05 builds the agent in code), clean rooms, online tables,
   account console (so no OIDC federation), SSO/SCIM. Non-commercial use only.
+
+## Troubleshooting
+| Symptom | Fix |
+|---------|-----|
+| `CREATE CATALOG` refused in `free_edition_setup` | Add `config/*.yml` to `include:` in `databricks.yml` — everything then lives in the built-in `workspace` catalog, isolated by schema |
+| Git folder cannot clone or push | Re-link GitHub under **Settings → Linked accounts** and authorise the Databricks app for *this* repository |
+| **Deployments** panel missing next to `databricks.yml` | You opened the file outside a Git folder, or the file is not at the repository root |
+| `bundle deploy` creates nothing | Check the target is **dev**; staging and prod are deployed by CI only |
+| No **Service principals** page, or no **Generate secret** | Not offered in your Free Edition workspace — use the PAT option (part 4, option A) |
+| **Environments** missing in GitHub settings | Private repo on GitHub Free — make it public, or use `bundle-cicd-private.yml` in lab 06 |
+| `business_quickstart` run sits queued | Free Edition runs 5 tasks at a time; let earlier tasks finish rather than starting more runs |
+| Warehouse is not called *Serverless Starter Warehouse* | Set `warehouse_name` in `databricks.yml` to the name you see under **SQL Warehouses** |
+| Preview features not listed under **Settings → Previews** | They roll out gradually; anything missing stays optional in the labs |
 
 ## After the bootcamp
 Revoke the CI token (or service principal secret) and delete the GitHub secrets.

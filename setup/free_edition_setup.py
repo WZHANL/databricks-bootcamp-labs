@@ -1,4 +1,8 @@
 # Databricks notebook source
+# /// script
+# [tool.databricks.environment]
+# environment_version = "6"
+# ///
 # MAGIC %md
 # MAGIC # Lab 00 · Free Edition setup (run once, ~2 minutes)
 # MAGIC Creates the three environment catalogs and checks everything the labs need in **your** Free Edition workspace.
