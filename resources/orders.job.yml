@@ -1,4 +1,3 @@
-# SOLUTION-FILE lab-06
 # Orchestration written by hand in lab 06 and used as the integration test in lab 06.
 resources:
   jobs:

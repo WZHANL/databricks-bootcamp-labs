@@ -102,7 +102,6 @@ SYSTEM_PROMPT = (
 @mlflow.trace(span_type="AGENT")
 def support_agent(question: str) -> str:
     messages = [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": question}]
-    # SOLUTION-BEGIN lab-05: Loop up to 5 times: call llm.chat.completions.create(model=llm_endpoint, messages=messages, tools=TOOLS); if the reply has no tool_calls return its content; otherwise append the assistant message, run each tool with run_tool() and append {"role": "tool", "tool_call_id": ..., "content": result}.
     for _ in range(5):
         response = llm.chat.completions.create(model=llm_endpoint, messages=messages, tools=TOOLS)
         message = response.choices[0].message
@@ -112,7 +111,6 @@ def support_agent(question: str) -> str:
         for call in message.tool_calls:
             result = run_tool(call.function.name, json.loads(call.function.arguments or "{}"))
             messages.append({"role": "tool", "tool_call_id": call.id, "content": result})
-    # SOLUTION-END
     return "Sorry, I could not complete this request."
 
 # COMMAND ----------
@@ -141,7 +139,6 @@ eval_data = [
      "expectations": {"expected_response": "No, software licences are refundable only if the key was not activated."}},
 ]
 
-# SOLUTION-BEGIN lab-05: Call mlflow.genai.evaluate with eval_data, predict_fn=support_agent and scorers Correctness, RelevanceToQuery, Safety and a Guidelines judge requiring a polite answer that does not invent policies.
 results = mlflow.genai.evaluate(
     data=eval_data,
     predict_fn=support_agent,
@@ -153,7 +150,6 @@ results = mlflow.genai.evaluate(
                    guidelines="The answer must be polite and must not invent policies that are not in the support documents."),
     ],
 )
-# SOLUTION-END
 print(results.metrics)
 # Experiments → bootcamp-support-agent → Evaluations: per-question scores, rationales and traces.
 

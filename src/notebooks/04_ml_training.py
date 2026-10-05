@@ -47,7 +47,6 @@ mlflow.set_registry_uri("databricks-uc")
 orders = spark.table("orders_enriched")
 as_of = orders.agg(F.max("order_date")).first()[0]
 
-# SOLUTION-BEGIN lab-04: Aggregate orders per customer_id into: total_orders, total_revenue, avg_order_value, days_since_last_order (vs as_of), distinct_categories and mobile_share (share of orders with channel = 'mobile').
 features = (
     orders.groupBy("customer_id")
     .agg(
@@ -59,7 +58,6 @@ features = (
         F.avg(F.when(F.col("channel") == "mobile", 1).otherwise(0)).alias("mobile_share"),
     )
 )
-# SOLUTION-END
 display(features)
 
 # COMMAND ----------
@@ -68,7 +66,6 @@ display(features)
 
 # COMMAND ----------
 
-# SOLUTION-BEGIN lab-04: Create the feature table (fe.create_table with primary_keys=["customer_id"]) the first time, and fe.write_table(mode="merge") when it already exists.
 if spark.catalog.tableExists(feature_table):
     fe.write_table(name=feature_table, df=features, mode="merge")
 else:
@@ -78,7 +75,6 @@ else:
         df=features,
         description="Customer behaviour features for churn prediction (bootcamp lab 04)",
     )
-# SOLUTION-END
 spark.sql(f"ALTER TABLE {feature_table} SET TBLPROPERTIES (delta.enableChangeDataFeed = true)")
 
 # COMMAND ----------
@@ -89,7 +85,6 @@ spark.sql(f"ALTER TABLE {feature_table} SET TBLPROPERTIES (delta.enableChangeDat
 
 labels = spark.read.json(f"{raw_path}/labels/").select("customer_id", "churned")
 
-# SOLUTION-BEGIN lab-04: Build a training set from labels with a FeatureLookup on the feature table (lookup_key customer_id), label 'churned', excluding customer_id; load it as pandas.
 training_set = fe.create_training_set(
     df=labels,
     feature_lookups=[FeatureLookup(table_name=feature_table, lookup_key="customer_id")],
@@ -97,7 +92,6 @@ training_set = fe.create_training_set(
     exclude_columns=["customer_id"],
 )
 pdf = training_set.load_df().toPandas().fillna(0)
-# SOLUTION-END
 pdf.head()
 
 # COMMAND ----------
@@ -120,7 +114,6 @@ with mlflow.start_run(run_name="gbt-baseline") as run:
     model = GradientBoostingClassifier(random_state=42).fit(X_train, y_train)
     auc = roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
     mlflow.log_metric("test_auc", auc)
-    # SOLUTION-BEGIN lab-04: Log the model with fe.log_model (flavor=mlflow.sklearn, training_set=training_set) registered as model_name_fs, and a plain mlflow.sklearn.log_model registered as model_name with an input example.
     fe.log_model(
         model=model,
         artifact_path="model_fs",
@@ -134,7 +127,6 @@ with mlflow.start_run(run_name="gbt-baseline") as run:
         registered_model_name=model_name,
         input_example=X_test.head(5),
     )
-    # SOLUTION-END
 print(f"test AUC = {auc:.3f}")
 
 # COMMAND ----------

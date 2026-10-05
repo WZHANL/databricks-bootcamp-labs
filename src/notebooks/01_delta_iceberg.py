@@ -31,14 +31,12 @@
 # MAGIC AS SELECT customer_id, first_name, last_name, email, region, segment, to_date(signup_date) AS signup_date
 # MAGIC FROM customers;
 # MAGIC
-# MAGIC -- SOLUTION-BEGIN lab-01: Create a managed Apache Iceberg table orders_iceberg (USING ICEBERG) as a copy of orders_silver, then SELECT count(*) from it.
 # MAGIC CREATE OR REPLACE TABLE orders_iceberg
 # MAGIC USING ICEBERG
 # MAGIC COMMENT 'Managed Iceberg copy of silver orders, readable by external Iceberg clients'
 # MAGIC AS SELECT * FROM orders_silver;
 # MAGIC
 # MAGIC SELECT count(*) AS iceberg_rows FROM orders_iceberg;
-# MAGIC -- SOLUTION-END
 
 # COMMAND ----------
 
@@ -54,14 +52,12 @@
 # MAGIC   (9001, 'consumer')       -- brand-new customer
 # MAGIC AS t(customer_id, segment);
 # MAGIC
-# MAGIC -- SOLUTION-BEGIN lab-01: MERGE profile_updates into customer_profiles on customer_id: update segment when matched, insert (customer_id, segment, signup_date = current_date()) when not matched.
 # MAGIC MERGE INTO customer_profiles AS t
 # MAGIC USING profile_updates AS s
 # MAGIC ON t.customer_id = s.customer_id
 # MAGIC WHEN MATCHED THEN UPDATE SET t.segment = s.segment
 # MAGIC WHEN NOT MATCHED THEN INSERT (customer_id, segment, signup_date)
 # MAGIC   VALUES (s.customer_id, s.segment, current_date());
-# MAGIC -- SOLUTION-END
 
 # COMMAND ----------
 
@@ -80,18 +76,10 @@
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC ALTER TABLE orders_status SET TBLPROPERTIES ('delta.feature.catalogManaged' = 'supported');
-# MAGIC ALTER TABLE refunds SET TBLPROPERTIES ('delta.feature.catalogManaged' = 'supported');
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC -- SOLUTION-BEGIN lab-01: In one transaction, set status = 'refunded' for order_id 1 in orders_status and insert the matching refund row into refunds.
-# MAGIC BEGIN ATOMIC
-# MAGIC   UPDATE orders_status SET status = 'refunded' WHERE order_id = 1;
-# MAGIC   INSERT INTO refunds SELECT order_id, current_timestamp(), amount FROM orders_status WHERE order_id = 1;
-# MAGIC END;
-# MAGIC -- SOLUTION-END
+# MAGIC BEGIN TRANSACTION;
+# MAGIC UPDATE orders_status SET status = 'refunded' WHERE order_id = 1;
+# MAGIC INSERT INTO refunds SELECT order_id, current_timestamp(), amount FROM orders_status WHERE order_id = 1;
+# MAGIC COMMIT;
 
 # COMMAND ----------
 
@@ -106,14 +94,12 @@
 
 # COMMAND ----------
 
-# SOLUTION-BEGIN lab-01: Find the version just before the last DELETE in DESCRIBE HISTORY, count EMEA rows at that version with VERSION AS OF, then RESTORE TABLE customer_profiles to it.
 history = spark.sql("DESCRIBE HISTORY customer_profiles")
 delete_version = history.filter("operation = 'DELETE'").agg({"version": "max"}).first()[0]
 before = delete_version - 1
 print("EMEA rows before the delete:",
       spark.sql(f"SELECT count(*) FROM customer_profiles VERSION AS OF {before} WHERE region = 'EMEA'").first()[0])
 display(spark.sql(f"RESTORE TABLE customer_profiles TO VERSION AS OF {before}"))
-# SOLUTION-END
 
 # COMMAND ----------
 
@@ -130,14 +116,12 @@ display(spark.sql(f"RESTORE TABLE customer_profiles TO VERSION AS OF {before}"))
 
 # COMMAND ----------
 
-# SOLUTION-BEGIN lab-01: Get the latest table version from DESCRIBE HISTORY and display table_changes('customer_profiles', <version>) with _change_type, customer_id and segment.
 latest = spark.sql("DESCRIBE HISTORY customer_profiles").agg({"version": "max"}).first()[0]
 display(spark.sql(f"""
   SELECT _change_type, _commit_version, customer_id, segment
   FROM table_changes('customer_profiles', {latest})
   ORDER BY customer_id, _change_type
 """))
-# SOLUTION-END
 
 # COMMAND ----------
 
@@ -146,10 +130,8 @@ display(spark.sql(f"""
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC -- SOLUTION-BEGIN lab-01: Enable automatic liquid clustering on orders_status (CLUSTER BY AUTO) and inspect clusteringColumns with DESCRIBE DETAIL.
 # MAGIC ALTER TABLE orders_status CLUSTER BY AUTO;
 # MAGIC DESCRIBE DETAIL orders_status;
-# MAGIC -- SOLUTION-END
 
 # COMMAND ----------
 

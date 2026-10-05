@@ -1,4 +1,3 @@
-# SOLUTION-FILE lab-06
 # One click for business participants: builds everything the business (UI) labs need in your dev target.
 # Run it from the bundle's Deployments panel after deploying the `solution` branch (lab 00, business path).
 resources:

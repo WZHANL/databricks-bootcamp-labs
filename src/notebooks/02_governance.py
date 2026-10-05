@@ -20,11 +20,9 @@
 
 # COMMAND ----------
 
-# SOLUTION-BEGIN lab-02: Grant USE SCHEMA and SELECT on your schema to bootcamp_analysts, and USE SCHEMA, SELECT, MODIFY and CREATE TABLE to bootcamp_engineers. Then SHOW GRANTS on the schema.
 spark.sql(f"GRANT USE SCHEMA, SELECT ON SCHEMA `{catalog}`.`{schema}` TO `bootcamp_analysts`")
 spark.sql(f"GRANT USE SCHEMA, SELECT, MODIFY, CREATE TABLE ON SCHEMA `{catalog}`.`{schema}` TO `bootcamp_engineers`")
 display(spark.sql(f"SHOW GRANTS ON SCHEMA `{catalog}`.`{schema}`"))
-# SOLUTION-END
 
 # COMMAND ----------
 
@@ -39,7 +37,6 @@ display(spark.sql(f"SHOW GRANTS ON SCHEMA `{catalog}`.`{schema}`"))
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC -- SOLUTION-BEGIN lab-02: Create a SQL UDF mask_email(email STRING) that returns the e-mail for members of bootcamp_engineers and '***@<domain>' for everyone else, then apply it as a column mask on customer_profiles.email.
 # MAGIC CREATE OR REPLACE FUNCTION mask_email(email STRING)
 # MAGIC RETURNS STRING
 # MAGIC COMMENT 'Shows full e-mail to engineers, domain only to everyone else'
@@ -49,7 +46,6 @@ display(spark.sql(f"SHOW GRANTS ON SCHEMA `{catalog}`.`{schema}`"))
 # MAGIC END;
 # MAGIC
 # MAGIC ALTER TABLE customer_profiles ALTER COLUMN email SET MASK mask_email;
-# MAGIC -- SOLUTION-END
 
 # COMMAND ----------
 
@@ -109,7 +105,6 @@ display(spark.sql(f"SHOW EFFECTIVE POLICIES ON TABLE `{catalog}`.`{schema}`.cust
 
 # COMMAND ----------
 
-# SOLUTION-BEGIN lab-02: Create the metric view orders_metrics (CREATE OR REPLACE VIEW ... WITH METRICS LANGUAGE YAML) on orders_enriched with dimensions order_month, region, segment, category, channel and measures revenue, order_count and avg_order_value.
 metric_yaml = f"""
 version: 1.1
 comment: Governed sales KPIs for dashboards, Genie Agents and apps
@@ -134,7 +129,6 @@ measures:
     expr: SUM(amount) / COUNT(DISTINCT order_id)
 """
 spark.sql(f"CREATE OR REPLACE VIEW orders_metrics WITH METRICS LANGUAGE YAML AS $${metric_yaml}$$")
-# SOLUTION-END
 
 # COMMAND ----------
 
